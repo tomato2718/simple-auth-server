@@ -1,2 +1,3 @@
 # simple-auth-server
-my first web server implemented in rust
+
+Try to implement my fist web server with rust
