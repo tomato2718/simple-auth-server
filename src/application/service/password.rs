@@ -1,7 +1,7 @@
 pub trait PasswordHasher {
-    fn hash(raw: &str) -> String;
+    fn hash(&self, raw: &str) -> String;
 }
 
 pub trait PasswordValidator {
-    fn verify(raw: &str, hashed: &str) -> bool;
+    fn verify(&self, raw: &str, hashed: &str) -> bool;
 }
