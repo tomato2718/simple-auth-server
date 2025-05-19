@@ -96,7 +96,7 @@ mod test {
     fn execute_given_user_information_should_persist_to_repository() {
         let mut mock_user_repository = FakeUserRepository::new();
         let mut sign_up = SignUpUseCase::new(
-            &FakePasswordHasher{},
+            &FakePasswordHasher {},
             &mut mock_user_repository,
             fake_get_timestamp,
         );
