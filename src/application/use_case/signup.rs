@@ -1,19 +1,16 @@
 use crate::application::service::password::PasswordHasher;
 use crate::domain::{entity::User, error, repository::UserRepository, value_object::EmailAddress};
 
-pub struct SignUpUseCase<'a, T: UserRepository> {
-    password_hasher: Box<dyn PasswordHasher>,
-    user_repository: &'a mut T,
+pub struct SignUpUseCase<'a> {
+    password_hasher: &'a dyn PasswordHasher,
+    user_repository: &'a mut dyn UserRepository,
     get_timestamp: fn() -> u64,
 }
 
-impl<'a, T> SignUpUseCase<'a, T>
-where
-    T: UserRepository,
-{
+impl<'a> SignUpUseCase<'a> {
     pub fn new(
-        password_hasher: Box<dyn PasswordHasher>,
-        user_repository: &'a mut T,
+        password_hasher: &'a dyn PasswordHasher,
+        user_repository: &'a mut dyn UserRepository,
         get_timestamp: fn() -> u64,
     ) -> Self {
         SignUpUseCase {
@@ -99,7 +96,7 @@ mod test {
     fn execute_given_user_information_should_persist_to_repository() {
         let mut mock_user_repository = FakeUserRepository::new();
         let mut sign_up = SignUpUseCase::new(
-            Box::new(FakePasswordHasher {}),
+            &FakePasswordHasher{},
             &mut mock_user_repository,
             fake_get_timestamp,
         );
