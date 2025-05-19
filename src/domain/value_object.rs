@@ -5,6 +5,10 @@ pub struct EmailAddress {
 }
 
 impl EmailAddress {
+    pub fn as_str(&self) -> &str {
+        self.address.as_str()
+    }
+
     pub fn new(address: &str) -> Result<Self, ValidationError> {
         if !EmailAddress::validate(address) {
             return Err(ValidationError::new("Invalid email address"));
