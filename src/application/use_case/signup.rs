@@ -114,4 +114,33 @@ mod test {
                 .contains_key("example@example.com")
         )
     }
+
+    #[test]
+    fn execute_given_conflict_email_should_return_entity_conflict() {
+        let mut mock_user_repository = FakeUserRepository::new();
+        mock_user_repository.data.insert(
+            "example@example.com".to_string(),
+            User {
+                email: EmailAddress::new("example@example.com").unwrap(),
+                username: "foo".to_string(),
+                password: "bar".to_string(),
+                create_at: 1747636936,
+                update_at: 1747636936,
+            },
+        );
+        let user = CreateUserDTO {
+            email_address: EmailAddress::new("example@example.com").unwrap(),
+            username: "test".to_string(),
+            password: "password".to_string(),
+        };
+        let mut sign_up = SignUpUseCase::new(
+            &FakePasswordHasher {},
+            &mut mock_user_repository,
+            fake_get_timestamp,
+        );
+
+        let result = sign_up.execute(user);
+
+        assert!(matches!(result, Err(error::EntityConflict {})));
+    }
 }
