@@ -53,8 +53,9 @@ mod test {
     #[test]
     fn execute_given_user_information_should_persist_to_repository() {
         let mut mock_user_repository = FakeUserRepository::new();
+        let stub_password_hasher = FakePasswordHasher::new("hashed");
         let mut sign_up = SignUpUseCase::new(
-            &FakePasswordHasher {},
+            &stub_password_hasher,
             &mut mock_user_repository,
             fake_get_timestamp,
         );
@@ -76,6 +77,7 @@ mod test {
     #[test]
     fn execute_given_conflict_email_should_return_entity_conflict() {
         let mut mock_user_repository = FakeUserRepository::new();
+        let stub_password_hasher = FakePasswordHasher::new("hashed");
         mock_user_repository.data.insert(
             "example@example.com".to_string(),
             User {
@@ -92,7 +94,7 @@ mod test {
             password: "password".to_string(),
         };
         let mut sign_up = SignUpUseCase::new(
-            &FakePasswordHasher {},
+            &stub_password_hasher,
             &mut mock_user_repository,
             fake_get_timestamp,
         );

@@ -1,20 +1,32 @@
 use crate::application::service::auth::{PasswordHasher, TokenIssuer};
 
-pub struct FakePasswordHasher {}
+pub struct FakePasswordHasher {
+    to_return: String,
+}
+
+impl FakePasswordHasher {
+    pub fn new(to_return: &str) -> Self {
+        FakePasswordHasher {
+            to_return: to_return.to_string(),
+        }
+    }
+}
 
 impl PasswordHasher for FakePasswordHasher {
     fn hash(&self, raw: &str) -> String {
-        raw.to_string()
+        self.to_return.clone()
     }
 }
 
 pub struct FakeTokenIssuer {
-    to_return: String
+    to_return: String,
 }
 
 impl FakeTokenIssuer {
-    fn new(to_return: &str) -> Self {
-        FakeTokenIssuer { to_return: to_return.to_string() }
+    pub fn new(to_return: &str) -> Self {
+        FakeTokenIssuer {
+            to_return: to_return.to_string(),
+        }
     }
 }
 
