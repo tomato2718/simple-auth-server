@@ -1,4 +1,4 @@
-use crate::application::service::password::PasswordHasher;
+use crate::application::service::auth::PasswordHasher;
 use crate::domain::{entity::User, error, repository::UserRepository, value_object::EmailAddress};
 
 pub struct SignUpUseCase<'a> {

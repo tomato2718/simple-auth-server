@@ -1,4 +1,4 @@
-use crate::application::service::password::PasswordHasher;
+use crate::application::service::auth::PasswordHasher;
 
 pub struct FakePasswordHasher {}
 
