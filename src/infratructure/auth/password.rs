@@ -1,7 +1,7 @@
 use crate::application::service::auth::{PasswordHasher, PasswordValidator};
 use bcrypt::{hash, verify};
 
-struct BcryptHasher {
+pub struct BcryptHasher {
     round: u32,
 }
 
@@ -17,7 +17,7 @@ impl PasswordHasher for BcryptHasher {
     }
 }
 
-struct BcryptValidator {}
+pub struct BcryptValidator {}
 
 impl PasswordValidator for BcryptValidator {
     fn verify(&self, raw: &str, hashed: &str) -> bool {
