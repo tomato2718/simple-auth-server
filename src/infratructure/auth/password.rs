@@ -21,7 +21,7 @@ pub struct BcryptValidator {}
 
 impl PasswordValidator for BcryptValidator {
     fn verify(&self, raw: &str, hashed: &str) -> bool {
-        verify(raw, hashed).is_ok()
+        verify(raw, hashed).expect("hashed password from application should always be valid")
     }
 }
 
@@ -41,14 +41,17 @@ mod test {
 
     #[test]
     fn bcrypt_validator_given_raw_and_hashed_password_should_return_is_valid() {
-        let passwords = vec!["correct_password", "wrong_password"];
+        let passwords = vec![("correct_password", true), ("wrong_password", false)];
         let validator = BcryptValidator {};
 
-        for p in passwords {
-            assert!(validator.verify(
-                p,
-                "$2a$04$FlenKTKcUW/BI0HBwCPTReMLMh0uo8zuKfja7N.Uo3IHjM3Kp0SIK"
-            ));
+        for (password, is_valid) in passwords {
+            assert_eq!(
+                validator.verify(
+                    password,
+                    "$2a$04$FlenKTKcUW/BI0HBwCPTReMLMh0uo8zuKfja7N.Uo3IHjM3Kp0SIK"
+                ),
+                is_valid
+            );
         }
     }
 }
