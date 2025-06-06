@@ -5,7 +5,7 @@ pub struct SignInUseCase<'a> {
     password_validator: &'a dyn PasswordValidator,
     access_token_issuer: &'a dyn TokenIssuer,
     refresh_token_issuer: &'a dyn TokenIssuer,
-    user_repository: &'a mut dyn UserRepository,
+    user_repository: &'a dyn UserRepository,
 }
 
 impl<'a> SignInUseCase<'a> {
@@ -13,7 +13,7 @@ impl<'a> SignInUseCase<'a> {
         password_validator: &'a dyn PasswordValidator,
         access_token_issuer: &'a dyn TokenIssuer,
         refresh_token_issuer: &'a dyn TokenIssuer,
-        user_repository: &'a mut dyn UserRepository,
+        user_repository: &'a dyn UserRepository,
     ) -> Self {
         SignInUseCase {
             password_validator,
