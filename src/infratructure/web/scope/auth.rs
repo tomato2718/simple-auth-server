@@ -1,14 +1,12 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
-use actix_web::{HttpResponse, Responder, Scope, post, web};
-use serde::Deserialize;
+use actix_web::{HttpResponse, Responder, Scope, http::header::ContentType, post, web};
+use serde::{Deserialize, Serialize};
 
 use crate::application::use_case::{CreateUserDTO, SignInUseCase, SignUpUseCase};
-use crate::domain::{entity::User, repository::UserRepository, value_object::EmailAddress};
+use crate::domain::{entity::User, value_object::EmailAddress};
 use crate::infratructure::{
     auth::{BcryptHasher, BcryptValidator, InfraClaims, JWTIssuer},
     repository::{GenericTableManager, InMemoryUserRepository},
-    system::get_systime,
+    system::{EnvVar, get_systime},
 };
 
 pub fn scope(path: &str) -> Scope {
@@ -53,30 +51,62 @@ struct SignInRequestBody {
     password: String,
 }
 
-#[post("/signin")]
-async fn signin(body: web::Json<SignInRequestBody>) -> impl Responder {
-    // let sign_in = SignInUseCase::new(
-    //     &BcryptValidator {},
-    //     &JWTIssuer::new(
-    //         b"",
-    //         InfraClaims {
-    //             iss: "test".to_string(),
-    //             aud: "test".to_string(),
-    //             iat: 123,
-    //             exp: 123,
-    //         },
-    //     ),
-    //     &JWTIssuer::new(
-    //         b"",
-    //         InfraClaims {
-    //             iss: "test".to_string(),
-    //             aud: "test".to_string(),
-    //             iat: 123,
-    //             exp: 123,
-    //         },
-    //     ),
-    //     &InMemoryUserRepository::new(),
-    // );
+#[derive(Serialize)]
+struct SignInResponse {
+    pub access_token: String,
+    pub refresh_token: String,
+    pub username: String,
+    pub email: String,
+}
 
-    HttpResponse::NoContent()
+#[post("/signin")]
+async fn signin(
+    body: web::Json<SignInRequestBody>,
+    user_inmemory_table: web::Data<GenericTableManager<User>>,
+    envvar: web::Data<EnvVar>,
+) -> HttpResponse {
+    let user_repository = InMemoryUserRepository::new(user_inmemory_table.get_table());
+    let now = get_systime();
+    let access_token_issuer = JWTIssuer::new(
+        &envvar.access_token_secret,
+        InfraClaims {
+            iss: envvar.app_name.clone(),
+            aud: envvar.app_name.clone(),
+            iat: now,
+            exp: now + envvar.access_token_valid_seconds,
+        },
+    );
+    let refresh_token_issuer = JWTIssuer::new(
+        &envvar.refresh_token_secret,
+        InfraClaims {
+            iss: envvar.app_name.clone(),
+            aud: envvar.app_name.clone(),
+            iat: now,
+            exp: now + envvar.refresh_token_valid_seconds,
+        },
+    );
+    let sign_in = SignInUseCase::new(
+        &BcryptValidator {},
+        &access_token_issuer,
+        &refresh_token_issuer,
+        &user_repository,
+    );
+    let email = match EmailAddress::new(&body.email) {
+        Ok(email) => email,
+        Err(_) => return HttpResponse::UnprocessableEntity().finish(),
+    };
+
+    let result = sign_in.execute(email, &body.password);
+
+    match result {
+        Ok(res) => HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .json(SignInResponse {
+                access_token: res.access_token,
+                refresh_token: res.refresh_token,
+                username: res.username,
+                email: res.email,
+            }),
+        Err(_) => HttpResponse::Unauthorized().finish(),
+    }
 }
