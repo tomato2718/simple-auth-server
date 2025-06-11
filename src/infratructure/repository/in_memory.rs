@@ -5,31 +5,34 @@ use crate::domain::{
     value_object::EmailAddress,
 };
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 pub struct InMemoryUserRepository {
-    data: HashMap<String, User>,
+    data: Arc<Mutex<HashMap<String, User>>>,
 }
 
 impl InMemoryUserRepository {
-    pub fn new() -> Self {
+    pub fn new(in_memory_table: Arc<Mutex<HashMap<String, User>>>) -> Self {
         InMemoryUserRepository {
-            data: HashMap::new(),
+            data: in_memory_table,
         }
     }
 }
 
 impl UserRepository for InMemoryUserRepository {
     fn create(&mut self, user: User) -> Result<(), EntityConflict> {
-        if self.data.contains_key(user.email.as_str()) {
+        let mut table = self.data.lock().unwrap();
+        if table.contains_key(user.email.as_str()) {
             return Err(EntityConflict {});
         }
-        self.data.insert(user.email.as_str().to_string(), user);
+        table.insert(user.email.as_str().to_string(), user);
 
         Ok(())
     }
 
     fn get(&self, email: EmailAddress) -> Result<User, EntityNotExist> {
-        match self.data.get(email.as_str()) {
+        let table = self.data.lock().unwrap();
+        match table.get(email.as_str()) {
             Some(user) => Ok(User {
                 email: EmailAddress::new(user.email.as_str()).unwrap(),
                 username: user.username.clone(),
@@ -58,7 +61,7 @@ mod test {
 
     #[test]
     fn create_given_user_should_persist_to_data() {
-        let mut repo = InMemoryUserRepository::new();
+        let mut repo = InMemoryUserRepository::new(Arc::new(Mutex::new(HashMap::new())));
         let user = create_user();
 
         let result = repo.create(user);
@@ -68,7 +71,7 @@ mod test {
 
     #[test]
     fn create_given_conflict_email_should_return_entity_conflict() {
-        let mut repo = InMemoryUserRepository::new();
+        let mut repo = InMemoryUserRepository::new(Arc::new(Mutex::new(HashMap::new())));
         repo.create(create_user()).expect("should be ok");
         let user = create_user();
 
@@ -79,7 +82,7 @@ mod test {
 
     #[test]
     fn get_given_email_should_return_user() {
-        let mut repo = InMemoryUserRepository::new();
+        let mut repo = InMemoryUserRepository::new(Arc::new(Mutex::new(HashMap::new())));
         repo.create(create_user()).expect("should be ok");
 
         let user = repo.get(EmailAddress::new("example@example.com").unwrap());
@@ -89,7 +92,7 @@ mod test {
 
     #[test]
     fn get_given_not_exist_email_should_return_entity_not_exist() {
-        let repo = InMemoryUserRepository::new();
+        let repo = InMemoryUserRepository::new(Arc::new(Mutex::new(HashMap::new())));
 
         let user = repo.get(EmailAddress::new("example@example.com").unwrap());
 
