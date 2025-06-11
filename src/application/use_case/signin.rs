@@ -1,5 +1,5 @@
 use crate::application::service::{auth::PasswordValidator, auth::TokenIssuer};
-use crate::domain::{entity::User, error, repository::UserRepository, value_object::EmailAddress};
+use crate::domain::{repository::UserRepository, value_object::EmailAddress};
 
 pub struct SignInUseCase<'a> {
     password_validator: &'a dyn PasswordValidator,
@@ -42,10 +42,10 @@ impl<'a> SignInUseCase<'a> {
 }
 
 pub struct SignInResult {
-    access_token: String,
-    refresh_token: String,
-    username: String,
-    email: String,
+    pub access_token: String,
+    pub refresh_token: String,
+    pub username: String,
+    pub email: String,
 }
 
 pub enum FailReason {
@@ -56,6 +56,7 @@ pub enum FailReason {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::domain::entity::User;
     use crate::test_support::{
         application::service::{FakePasswordValidator, FakeTokenIssuer},
         domain::repository::FakeUserRepository,
