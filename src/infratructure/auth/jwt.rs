@@ -43,8 +43,8 @@ impl<'a> TokenIssuer for JWTIssuer<'a> {
 pub struct InfraClaims {
     pub iss: String,
     pub aud: String,
-    pub iat: u32,
-    pub exp: u32,
+    pub iat: u64,
+    pub exp: u64,
 }
 
 #[derive(serde::Serialize)]
@@ -52,8 +52,8 @@ struct CompleteClaims<'a> {
     pub sub: &'a str,
     pub iss: &'a str,
     pub aud: &'a str,
-    pub iat: &'a u32,
-    pub exp: &'a u32,
+    pub iat: &'a u64,
+    pub exp: &'a u64,
 }
 
 #[cfg(test)]
